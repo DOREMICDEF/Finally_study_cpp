@@ -3,73 +3,85 @@
 #include <algorithm>
 using namespace std;
 
-int main() {
-	vector<int> numbers = { 40, 10, 80, 30, 60 };
+// 실습 1
+// Inventory b = a; -> 복사 연산자
+// Inventory c = std::move(a); -> 이동 연산자
+// b = std::move(c); -> 복사 대입 연산자
 
-	// 1. 람다 함수 sort
-	sort(numbers.begin(), numbers.end(),
-		[](int a, int b) {
-			return a > b;
-		}
-	);
+// 실습 2 - 이동 생성자 완성
+class Data
+{
+private:
+	int* ptr;
 
-	// 2. find_if
+public:
+	Data(int value)
+		: ptr(new int(value))
+	{
 
-	vector<int> hp = { 100, 80, 30, 150 };
-	auto it = find_if(hp.begin(), hp.end(),
-		[](int value)
-		{
-			return value < 50;
-		}
-	);
+	}
 
-	// 3. remove_if
-	vector<int> monsters = { 100, 0, 50, 0, 80 };
-	monsters.erase(
-		remove_if(monsters.begin(), monsters.end(),
-			[](int value)
-			{
-				return value == 0;
-			}
-		),
-		monsters.end()
-	);
+	Data(const Data&) = delete;
+	Data& operator=(const Data&) = delete;
 
-//	// 핵심 문법
+	Data(Data&& other) noexcept
+	{
+		ptr = other.ptr;
+		other.ptr = nullptr;
+	}
+
+	~Data()
+	{
+		delete ptr;
+	}
+};
+
+// 실습 3 - 이동 대입 연산자 구현
+
+Data& operator=(Data&& other) noexcept
+{
+	if (this != &other)
+	{
+		this.ptr = nullptr;
+		ptr = other.ptr;
+		other.ptr = nullptr;
+	}
+
+	return *this;
+}
+
+// rull of five
+//class Inventory
+//{
+//public:
+//	~Inventory();
 //
-//#include <algorithm>
+//	Inventory(const Inventory& other);
 //
-//// 1. 오름차순
-//	sort(v.begin(), v.end());
+//	Inventory& operator=(const Inventory& other);
 //
-//	// 2. 내림차순
-//	sort(v.begin(), v.end(),
-//		[](int a, int b)
-//		{
-//			return a > b;
-//		}
-//	);
+//	Inventory(Inventory&& other) noexcept;
+//
+//	Inventory& operator=(Inventory&& other) noexcept;
+//};
 
-	// 3. 람다 함수
-	//auto Add = [](int a, int b)
-	//	{
-	//		return a + b;
-	//	};
-
-	//// 4. 람다 캡처
-	//[x]   // x를 값으로 캡처
-	//	[&x]  // x를 참조로 캡처
-	//[=]   // 사용한 외부 지역 변수를 값으로 캡처
-	//[&]   // 사용한 외부 지역 변수를 참조로 캡처
-
-	//// 5. 조건 검색
-	//auto it = find_if(v.begin(), v.end(), 조건);
-
-	//// 6. 조건에 맞는 개수
-	//auto count = count_if(v.begin(), v.end(), 조건);
-
-	//// 7. 조건에 맞는 원소 삭제
-	//v.erase(
-	//	remove_if(v.begin(), v.end(), 조건),
-	//	v.end()
-	//);
+// 핵심 문법 정리
+//#include <utility>
+//
+//// 복사 생성자
+//ClassName(const ClassName& other);
+//
+//// 이동 생성자
+//ClassName(ClassName&& other) noexcept;
+//
+//// 복사 대입 연산자
+//ClassName& operator=(const ClassName& other);
+//
+//// 이동 대입 연산자
+//ClassName& operator=(ClassName&& other) noexcept;
+//
+//// 이동 가능한 표현식으로 변환
+//std::move(object);
+//
+//// 현재 객체 자신을 반환
+//return *this;
