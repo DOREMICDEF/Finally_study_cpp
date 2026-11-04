@@ -35,20 +35,20 @@ int main() {
 		monsters.end()
 	);
 
-	// 핵심 문법
-
-#include <algorithm>
-
-// 1. 오름차순
-	sort(v.begin(), v.end());
-
-	// 2. 내림차순
-	sort(v.begin(), v.end(),
-		[](int a, int b)
-		{
-			return a > b;
-		}
-	);
+//	// 핵심 문법
+//
+//#include <algorithm>
+//
+//// 1. 오름차순
+//	sort(v.begin(), v.end());
+//
+//	// 2. 내림차순
+//	sort(v.begin(), v.end(),
+//		[](int a, int b)
+//		{
+//			return a > b;
+//		}
+//	);
 
 	// 3. 람다 함수
 	//auto Add = [](int a, int b)
