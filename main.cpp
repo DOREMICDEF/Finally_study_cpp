@@ -34,21 +34,20 @@ public:
 	{
 		delete ptr;
 	}
-};
 
-// 실습 3 - 이동 대입 연산자 구현
-
-Data& operator=(Data&& other) noexcept
-{
-	if (this != &other)
+	Data& operator=(Data&& other) noexcept
 	{
-		this.ptr = nullptr;
-		ptr = other.ptr;
-		other.ptr = nullptr;
-	}
+		if (this != &other)
+		{
+			delete ptr;
+			ptr = other.ptr;
+			other.ptr = nullptr;
+		}
 
-	return *this;
+		return *this;
+	}
 }
+
 
 // rull of five
 //class Inventory
