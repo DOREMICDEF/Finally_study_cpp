@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -9,29 +10,22 @@
 using namespace std;
 
 // =====================================
-// 문제 1. 템플릿 함수
+// 공통 함수
 // =====================================
 
 template<typename T>
 T MaxValue(T a, T b)
 {
-    if (a > b)
-    {
-        return a;
-    }
-    else
-    {
-        return b;
-    }
+    return a > b ? a : b;
 }
 
-constexpr int CalculateDamage(int damage, int critical)
+constexpr int CalculateDamage(int damage, int multiplier)
 {
-    return damage * critical;
+    return damage * multiplier;
 }
 
 // =====================================
-// 문제 3. Monster 클래스
+// 9-12 실습: Monster 클래스
 // =====================================
 
 class Monster
@@ -52,38 +46,46 @@ public:
 };
 
 // =====================================
-// main 함수는 하나만!
+// 4-10 실습: Player 클래스
 // =====================================
 
-int main()
+class Player
 {
-    // =================================
-    // 문제 1
-    // =================================
+private:
+    int hp = 100;
 
-    cout << "=== 문제 1 ===\n";
+public:
+    int GetHp() const
+    {
+        return hp;
+    }
 
+    void ShowHp() const
+    {
+        cout << hp << endl;
+    }
+};
+
+// =====================================
+// 9-12 실습 실행
+// =====================================
+
+void RunPractice912()
+{
+    cout << "=== 9-12 실습 ===\n";
+
+    // 문제 1: 템플릿과 constexpr
     cout << MaxValue(10, 20) << endl;
     cout << MaxValue(3.5, 1.5) << endl;
 
     constexpr int damage = CalculateDamage(30, 2);
-
     static_assert(damage == 60);
 
     cout << damage << endl;
 
-    // =================================
-    // 문제 2
-    // =================================
+    // 문제 2: STL 알고리즘
+    vector<int> monsterHp = {100, 0, 300, 50, 0, 200};
 
-    cout << "\n=== 문제 2 ===\n";
-
-    vector<int> monsterHp =
-    {
-        100, 0, 300, 50, 0, 200
-    };
-
-    // HP가 0인 몬스터 제거
     monsterHp.erase(
         remove_if(
             monsterHp.begin(),
@@ -96,7 +98,6 @@ int main()
         monsterHp.end()
     );
 
-    // HP 내림차순 정렬
     sort(
         monsterHp.begin(),
         monsterHp.end(),
@@ -110,12 +111,7 @@ int main()
 
     cout << endl;
 
-    // =================================
-    // 문제 3
-    // =================================
-
-    cout << "\n=== 문제 3 ===\n";
-
+    // 문제 3: unique_ptr
     vector<unique_ptr<Monster>> monsters;
 
     auto goblin = make_unique<Monster>("Goblin");
@@ -130,6 +126,48 @@ int main()
     {
         monster->ShowInfo();
     }
+}
+
+// =====================================
+// 4-10 실습 실행
+// =====================================
+
+void RunPractice410()
+{
+    cout << "\n=== 4-10 실습 ===\n";
+
+    const Player player;
+
+    cout << player.GetHp() << endl;
+    player.ShowHp();
+
+    constexpr int damage = CalculateDamage(20, 3);
+
+    static_assert(damage == 60);
+
+    vector<int> hp = {100, 200, 300};
+
+    for (auto& n : hp)
+    {
+        n += 50;
+    }
+
+    for (const auto& n : hp)
+    {
+        cout << n << " ";
+    }
+
+    cout << endl;
+}
+
+// =====================================
+// main 함수는 하나만 사용
+// =====================================
+
+int main()
+{
+    RunPractice912();
+    RunPractice410();
 
     return 0;
 }
