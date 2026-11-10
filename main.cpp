@@ -1,70 +1,50 @@
 #include <iostream>
-#include <stdexcept>
 #include <vector>
+
 using namespace std;
+
+class Player
+{
+private:
+	int hp = 100;
+
+public:
+	int GetHp() const
+	{
+		return hp;
+	}
+
+	void ShowHp() const
+	{
+		cout << hp << endl;
+	}
+};
+
+constexpr int CalculateDamage(int attack, int multiplier)
+{
+	return attack * multiplier;
+}
 
 int main()
 {
-	int hp = -10;
-	try
+	const Player player;
+
+	cout << player.GetHp() << endl;
+	player.ShowHp();
+
+	constexpr int damage = CalculateDamage(20, 3);
+
+	static_assert(damage == 60);
+
+	vector<int> hp = { 100, 200, 300 };
+
+	for (auto& n : hp)
 	{
-		if (hp < 0)
-		{
-			throw runtime_error("잘못된 HP");
-		}
-	}
-	catch (const exception& e)
-	{
-		cout << e.what() << endl;
+		n += 50;
 	}
 
-	try
+	for (const auto& n : hp)
 	{
-		Test();
-	}
-	catch (const exception& e)
-	{
-		cout << e.what() << endl;
+		cout << n << " ";
 	}
 }
-
-class Resource
-{
-public:
-	Resource()
-	{
-		cout << "생성\n";
-	}
-	~Resource()
-	{
-		cout << "소멸\n";
-	}
-};
-
-void Test()
-{
-	Resource resource;
-
-	throw runtime_error("오류 발생");
-}
-
-class Inventory
-{
-private:
-	vector<int> items;
-
-public:
-	void AddItem(int id)
-	{
-		vector<int> temp = items;
-
-		temp.push_back(id);
-
-		if (id < 0)
-		{
-			throw runtime_error("예외 발생");
-		}
-
-		swap(temp, items);
-	}
-};
