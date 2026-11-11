@@ -2,172 +2,248 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <functional>
-#include <memory>
 #include <string>
-#include <utility>
 
 using namespace std;
 
-// =====================================
-// 공통 함수
-// =====================================
+// ========================================
+// 문제 1. 삽입 정렬
+// ========================================
 
-template<typename T>
-T MaxValue(T a, T b)
+void InsertionSort(vector<int>& arr)
 {
-    return a > b ? a : b;
+    // 첫 번째 원소는 정렬된 상태로 간주
+    for (size_t i = 1; i < arr.size(); i++)
+    {
+        // 현재 삽입할 값
+        int key = arr[i];
+        size_t j = i;
+
+        // key보다 큰 원소를 오른쪽으로 이동
+        while (j > 0 && arr[j - 1] > key)
+        {
+            arr[j] = arr[j - 1];
+            j--;
+        }
+
+        // 올바른 위치에 key 삽입
+        arr[j] = key;
+    }
 }
 
-constexpr int CalculateDamage(int damage, int multiplier)
+// ========================================
+// 문제 2. 병합 정렬
+// ========================================
+
+// [left, right) 구간 정렬
+void MergeSortRange(
+    vector<int>& arr,
+    vector<int>& temp,
+    size_t left,
+    size_t right)
 {
-    return damage * multiplier;
+    // 원소가 1개 이하이면 종료
+    if (right - left <= 1)
+        return;
+
+    // 배열을 절반으로 나누기
+    size_t mid = left + (right - left) / 2;
+
+    // 왼쪽 부분 재귀 정렬
+    MergeSortRange(arr, temp, left, mid);
+
+    // 오른쪽 부분 재귀 정렬
+    MergeSortRange(arr, temp, mid, right);
+
+    // 두 배열을 병합
+    size_t i = left;
+    size_t j = mid;
+    size_t k = left;
+
+    // 양쪽 원소를 비교
+    while (i < mid && j < right)
+    {
+        if (arr[i] <= arr[j])
+        {
+            temp[k] = arr[i];
+            i++;
+        }
+        else
+        {
+            temp[k] = arr[j];
+            j++;
+        }
+
+        k++;
+    }
+
+    // 왼쪽에 남은 원소 복사
+    while (i < mid)
+    {
+        temp[k] = arr[i];
+        i++;
+        k++;
+    }
+
+    // 오른쪽에 남은 원소 복사
+    while (j < right)
+    {
+        temp[k] = arr[j];
+        j++;
+        k++;
+    }
+
+    // 병합된 값을 원본 배열에 반영
+    for (size_t index = left; index < right; index++)
+    {
+        arr[index] = temp[index];
+    }
 }
 
-// =====================================
-// 9-12 실습: Monster 클래스
-// =====================================
-
-class Monster
+// 실제 호출할 함수
+void MergeSort(vector<int>& arr)
 {
-private:
+    // 임시 배열은 한 번만 생성
+    vector<int> temp(arr.size());
+
+    MergeSortRange(arr, temp, 0, arr.size());
+}
+
+// ========================================
+// 문제 3. 몬스터 정렬
+// ========================================
+
+struct Enemy
+{
     string name;
-
-public:
-    explicit Monster(string name)
-        : name(std::move(name))
-    {
-    }
-
-    void ShowInfo() const
-    {
-        cout << name << endl;
-    }
+    int threat;
+    int distance;
+    int spawnOrder;
 };
 
-// =====================================
-// 4-10 실습: Player 클래스
-// =====================================
+// ========================================
+// 정수 배열 출력 함수
+// ========================================
 
-class Player
+void PrintNumbers(const vector<int>& arr)
 {
-private:
-    int hp = 100;
-
-public:
-    int GetHp() const
-    {
-        return hp;
-    }
-
-    void ShowHp() const
-    {
-        cout << hp << endl;
-    }
-};
-
-// =====================================
-// 9-12 실습 실행
-// =====================================
-
-void RunPractice912()
-{
-    cout << "=== 9-12 실습 ===\n";
-
-    // 문제 1: 템플릿과 constexpr
-    cout << MaxValue(10, 20) << endl;
-    cout << MaxValue(3.5, 1.5) << endl;
-
-    constexpr int damage = CalculateDamage(30, 2);
-    static_assert(damage == 60);
-
-    cout << damage << endl;
-
-    // 문제 2: STL 알고리즘
-    vector<int> monsterHp = {100, 0, 300, 50, 0, 200};
-
-    monsterHp.erase(
-        remove_if(
-            monsterHp.begin(),
-            monsterHp.end(),
-            [](int hp)
-            {
-                return hp == 0;
-            }
-        ),
-        monsterHp.end()
-    );
-
-    sort(
-        monsterHp.begin(),
-        monsterHp.end(),
-        greater<int>()
-    );
-
-    for (int hp : monsterHp)
-    {
-        cout << hp << " ";
-    }
-
-    cout << endl;
-
-    // 문제 3: unique_ptr
-    vector<unique_ptr<Monster>> monsters;
-
-    auto goblin = make_unique<Monster>("Goblin");
-    auto dragon = make_unique<Monster>("Dragon");
-    auto slime = make_unique<Monster>("Slime");
-
-    monsters.push_back(std::move(goblin));
-    monsters.push_back(std::move(dragon));
-    monsters.push_back(std::move(slime));
-
-    for (const auto& monster : monsters)
-    {
-        monster->ShowInfo();
-    }
-}
-
-// =====================================
-// 4-10 실습 실행
-// =====================================
-
-void RunPractice410()
-{
-    cout << "\n=== 4-10 실습 ===\n";
-
-    const Player player;
-
-    cout << player.GetHp() << endl;
-    player.ShowHp();
-
-    constexpr int damage = CalculateDamage(20, 3);
-
-    static_assert(damage == 60);
-
-    vector<int> hp = {100, 200, 300};
-
-    for (auto& n : hp)
-    {
-        n += 50;
-    }
-
-    for (const auto& n : hp)
+    for (int n : arr)
     {
         cout << n << " ";
     }
 
-    cout << endl;
+    cout << "\n";
 }
 
-// =====================================
-// main 함수는 하나만 사용
-// =====================================
+// ========================================
+// 몬스터 상위 순위 출력 함수
+// ========================================
+
+void PrintTopEnemies(
+    const vector<Enemy>& enemies,
+    size_t count)
+{
+    for (size_t i = 0; i < count; i++)
+    {
+        const Enemy& e = enemies[i];
+
+        cout << i + 1 << " "
+            << e.name
+            << " (" << e.threat
+            << ", " << e.distance << ")\n";
+    }
+}
+
+// ========================================
+// main 함수 (하나만 작성)
+// ========================================
 
 int main()
 {
-    RunPractice912();
-    RunPractice410();
+    // ------------------------------------
+    // 문제 1. 삽입 정렬
+    // ------------------------------------
+
+    cout << "[문제 1] 삽입 정렬\n";
+
+    vector<int> numbers1 = { 9, 4, 1, 7, 3 };
+
+    InsertionSort(numbers1);
+
+    PrintNumbers(numbers1);
+
+    // ------------------------------------
+    // 문제 2. 병합 정렬
+    // ------------------------------------
+
+    cout << "\n[문제 2] 병합 정렬\n";
+
+    vector<int> numbers2 =
+    { 8, 3, 5, 1, 6, 2, 3 };
+
+    MergeSort(numbers2);
+
+    PrintNumbers(numbers2);
+
+    // ------------------------------------
+    // 문제 3. 몬스터 정렬
+    // ------------------------------------
+
+    vector<Enemy> enemies = {
+        {"Goblin", 30, 8, 0},
+        {"Orc", 60, 10, 1},
+        {"Mage", 60, 3, 2},
+        {"Boss", 100, 20, 3},
+        {"Archer", 60, 3, 4}
+    };
+
+    // 람다 비교 함수
+    auto compare = [](const Enemy& a, const Enemy& b)
+        {
+            // 1순위: 위협도가 높은 순서
+            if (a.threat != b.threat)
+            {
+                return a.threat > b.threat;
+            }
+
+            // 2순위: 거리가 가까운 순서
+            if (a.distance != b.distance)
+            {
+                return a.distance < b.distance;
+            }
+
+            // 3순위: 먼저 생성된 순서
+            return a.spawnOrder < b.spawnOrder;
+        };
+
+    // 원본을 복사하여 전체 정렬
+    vector<Enemy> sortedEnemies = enemies;
+
+    sort(
+        sortedEnemies.begin(),
+        sortedEnemies.end(),
+        compare
+    );
+
+    cout << "\n[문제 3] sort로 상위 3명\n";
+
+    PrintTopEnemies(sortedEnemies, 3);
+
+    // ------------------------------------
+    // 심화. partial_sort 사용하기
+    // ------------------------------------
+
+    // 전체를 정렬하지 않고 상위 3개만 정렬
+    partial_sort(
+        enemies.begin(),
+        enemies.begin() + 3,
+        enemies.end(),
+        compare
+    );
+
+    cout << "\n[심화] partial_sort로 상위 3명\n";
+
+    PrintTopEnemies(enemies, 3);
 
     return 0;
 }
