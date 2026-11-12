@@ -1,180 +1,353 @@
 
 #include <iostream>
-#include <vector>
-#include <algorithm>
+#include <queue>
 #include <string>
+#include <utility>
+#include <vector>
 
 using namespace std;
 
-// =========================================
-// 문제 1. 이진 탐색 함수
-// =========================================
+// ========================================
+// 실습 1. BFS 방문 순서
+// ========================================
 
-// const: 배열을 변경하지 않음
-// &: 배열을 복사하지 않고 참조
-// int: 찾은 인덱스를 반환, 없으면 -1
-int BinarySearch(const vector<int>& arr, int target)
+// graph: 인접 리스트로 저장한 그래프
+// start: 탐색을 시작할 정점
+// 반환형 void: 탐색 결과를 직접 출력
+
+void BFSVisitOrder(
+    const vector<vector<int>>& graph,
+    int start)
 {
-    int left = 0;
-    int right = static_cast<int>(arr.size());
+    // 1. 방문 여부 배열 생성
+    // 처음에는 모든 정점을 방문하지 않은 상태
+    vector<bool> visited(graph.size(), false);
 
-    // [left, right) 구간 탐색
-    while (left < right)
+    // 2. BFS에 사용할 큐
+    queue<int> q;
+
+    // 3. 시작 정점 방문 처리
+    visited[start] = true;
+
+    // 4. 시작 정점을 큐에 삽입
+    q.push(start);
+
+    cout << "BFS: ";
+
+    // 5. 큐가 비어 있지 않은 동안 반복
+    while (!q.empty())
     {
-        int mid = left + (right - left) / 2;
+        // 큐의 맨 앞 정점 확인
+        int current = q.front();
 
-        // 목표값을 찾았을 경우
-        if (arr[mid] == target)
+        // 맨 앞 정점 제거
+        q.pop();
+
+        // 현재 방문한 정점 출력
+        cout << current << " ";
+
+        // 현재 정점에 연결된 모든 이웃 탐색
+        for (int next : graph[current])
         {
-            return mid;
-        }
-        else if (arr[mid] < target)
-        {
-            // 목표값이 오른쪽에 존재
-            left = mid + 1;
-        }
-        else
-        {
-            // 목표값이 왼쪽에 존재
-            right = mid;
+            // 아직 방문하지 않은 정점이라면
+            if (!visited[next])
+            {
+                // 방문 처리
+                visited[next] = true;
+
+                // 다음에 탐색할 정점을 큐에 추가
+                q.push(next);
+            }
         }
     }
 
-    // 값을 찾지 못한 경우
+    cout << '\n';
+}
+
+// ========================================
+// 실습 2. BFS 최단 거리 계산
+// ========================================
+
+// 시작 정점에서 각 정점까지의 최소 거리를
+// vector<int>로 반환하는 함수
+
+vector<int> BFSDistances(
+    const vector<vector<int>>& graph,
+    int start)
+{
+    // 1. 거리 배열 생성
+    // -1: 아직 발견하지 않은 정점
+    vector<int> dist(graph.size(), -1);
+
+    // 2. BFS 큐 생성
+    queue<int> q;
+
+    // 3. 시작 정점의 거리는 0
+    dist[start] = 0;
+
+    // 4. 시작 정점을 큐에 추가
+    q.push(start);
+
+    // 5. BFS 실행
+    while (!q.empty())
+    {
+        int current = q.front();
+        q.pop();
+
+        // 현재 정점의 모든 이웃 확인
+        for (int next : graph[current])
+        {
+            // 아직 발견하지 않은 정점이라면
+            if (dist[next] == -1)
+            {
+                // 현재 정점보다 한 간선 더 이동
+                dist[next] = dist[current] + 1;
+
+                // 큐에 추가
+                q.push(next);
+            }
+        }
+    }
+
+    // 6. 모든 정점까지의 최소 거리 반환
+    return dist;
+}
+
+// ========================================
+// 실습 3. 게임 미로 최단 이동 횟수
+// ========================================
+
+// 반환값
+// 0 이상: 최소 이동 횟수
+// -1: 도달 불가능하거나 유효하지 않은 미로
+
+int MazeShortestMoves(
+    const vector<string>& maze)
+{
+    // ------------------------------------
+    // 1. 미로 크기 확인
+    // ------------------------------------
+
+    if (maze.empty() || maze[0].empty())
+    {
+        return -1;
+    }
+
+    int rows = static_cast<int>(maze.size());
+    int cols = static_cast<int>(maze[0].size());
+
+    // 시작 좌표와 목표 좌표
+    pair<int, int> start = { -1, -1 };
+    pair<int, int> goal = { -1, -1 };
+
+    // ------------------------------------
+    // 2. 시작점 S와 목표 G 찾기
+    // ------------------------------------
+
+    for (int r = 0; r < rows; r++)
+    {
+        // 모든 행의 길이가 동일해야 함
+        if (static_cast<int>(maze[r].size()) != cols)
+        {
+            return -1;
+        }
+
+        for (int c = 0; c < cols; c++)
+        {
+            if (maze[r][c] == 'S')
+            {
+                start = { r, c };
+            }
+
+            if (maze[r][c] == 'G')
+            {
+                goal = { r, c };
+            }
+        }
+    }
+
+    // 시작점이나 목표가 존재하지 않으면 종료
+    if (start.first == -1 || goal.first == -1)
+    {
+        return -1;
+    }
+
+    // ------------------------------------
+    // 3. 거리 배열 생성
+    // ------------------------------------
+
+    // 각 칸까지의 최소 이동 횟수 저장
+    // 초기값 -1은 아직 발견하지 않았다는 뜻
+    vector<vector<int>> dist(
+        rows,
+        vector<int>(cols, -1)
+    );
+
+    // ------------------------------------
+    // 4. BFS 큐 생성
+    // ------------------------------------
+
+    // pair<int, int>
+    // first  = row
+    // second = col
+    queue<pair<int, int>> q;
+
+    // 상, 하, 좌, 우 이동 방향
+    const int dr[4] = { -1, 1, 0, 0 };
+    const int dc[4] = { 0, 0, -1, 1 };
+
+    // 시작 좌표를 큐에 추가
+    q.push(start);
+
+    // 시작점의 거리는 0
+    dist[start.first][start.second] = 0;
+
+    // ------------------------------------
+    // 5. BFS 탐색
+    // ------------------------------------
+
+    while (!q.empty())
+    {
+        // 큐에서 현재 좌표 가져오기
+        // C++17 구조적 바인딩
+        auto [row, col] = q.front();
+
+        // 현재 좌표 제거
+        q.pop();
+
+        // --------------------------------
+        // 6. 목표 도착 검사
+        // --------------------------------
+
+        if (row == goal.first &&
+            col == goal.second)
+        {
+            // 목표까지의 최소 이동 횟수 반환
+            return dist[row][col];
+        }
+
+        // --------------------------------
+        // 7. 네 방향 탐색
+        // --------------------------------
+
+        for (int dir = 0; dir < 4; dir++)
+        {
+            // 다음 위치 계산
+            int nr = row + dr[dir];
+            int nc = col + dc[dir];
+
+            // ----------------------------
+            // 8. 배열 범위 검사
+            // ----------------------------
+
+            if (nr < 0 || nr >= rows ||
+                nc < 0 || nc >= cols)
+            {
+                continue;
+            }
+
+            // ----------------------------
+            // 9. 벽 또는 방문 여부 검사
+            // ----------------------------
+
+            // 벽이면 이동할 수 없음
+            if (maze[nr][nc] == '#')
+            {
+                continue;
+            }
+
+            // 이미 발견한 칸이면 건너뛰기
+            if (dist[nr][nc] != -1)
+            {
+                continue;
+            }
+
+            // ----------------------------
+            // 10. 최소 거리 갱신
+            // ----------------------------
+
+            // 현재 위치에서 한 칸 이동했으므로 +1
+            dist[nr][nc] = dist[row][col] + 1;
+
+            // 다음 위치를 큐에 추가
+            q.push({ nr, nc });
+        }
+    }
+
+    // 목표에 도달하지 못함
     return -1;
 }
 
-// =========================================
-// 문제 3. 게임 이벤트 구조체
-// =========================================
-
-struct GameEvent
-{
-    string name;
-    int triggerFrame;
-};
-
-// =========================================
+// ========================================
 // main 함수
-// =========================================
+// ========================================
 
 int main()
 {
-    // -------------------------------------
-    // 문제 1. 이진 탐색
-    // -------------------------------------
+    // ------------------------------------
+    // 실습 1. BFS 방문 순서
+    // ------------------------------------
 
-    cout << "===== 문제 1: 이진 탐색 =====\n";
+    cout << "[실습 1] BFS 방문 순서\n";
 
-    vector<int> numbers = {
-        4, 7, 11, 19, 24, 31, 42
+    vector<vector<int>> graph1 = {
+        {1, 2},  // 정점 0
+        {0, 3},  // 정점 1
+        {0, 4},  // 정점 2
+        {1},     // 정점 3
+        {2}      // 정점 4
     };
 
-    // 함수 호출 후 반환값 출력
-    cout << "19의 인덱스: "
-        << BinarySearch(numbers, 19) << endl;
+    // 0번 정점에서 BFS 시작
+    BFSVisitOrder(graph1, 0);
 
-    cout << "20의 인덱스: "
-        << BinarySearch(numbers, 20) << endl;
+    // ------------------------------------
+    // 실습 2. BFS 최단 거리
+    // ------------------------------------
 
+    cout << "\n[실습 2] 각 정점까지의 최소 거리\n";
 
-    // -------------------------------------
-    // 문제 2. 중복 레벨 검색
-    // -------------------------------------
-
-    cout << "\n===== 문제 2: 중복 레벨 검색 =====\n";
-
-    vector<int> levels = {
-        10, 20, 20, 20, 30, 40
+    vector<vector<int>> graph2 = {
+        {1, 2},
+        {0, 3},
+        {0, 4},
+        {1, 5},
+        {2, 5},
+        {3, 4}
     };
 
-    // 20 이상이 처음 등장하는 위치
-    auto lower = lower_bound(
-        levels.begin(),
-        levels.end(),
-        20
-    );
-
-    // 20 초과가 처음 등장하는 위치
-    auto upper = upper_bound(
-        levels.begin(),
-        levels.end(),
-        20
-    );
-
-    // 반복자를 인덱스로 변환
-    int lowerIndex =
-        static_cast<int>(lower - levels.begin());
-
-    int upperIndex =
-        static_cast<int>(upper - levels.begin());
+    // 0번 정점부터 각 정점까지의 최소 거리
+    vector<int> distances = BFSDistances(graph2, 0);
 
     // 결과 출력
-    cout << "lower_bound: "
-        << lowerIndex << endl;
+    for (int i = 0;
+        i < static_cast<int>(distances.size());
+        i++)
+    {
+        cout << "Vertex " << i
+            << ": " << distances[i]
+            << '\n';
+    }
 
-    cout << "upper_bound: "
-        << upperIndex << endl;
+    // ------------------------------------
+    // 실습 3. 미로 최단 이동 횟수
+    // ------------------------------------
 
-    // 중복된 20의 개수
-    cout << "레벨 20 아이템 개수: "
-        << upperIndex - lowerIndex << endl;
+    cout << "\n[실습 3] 미로 최단 이동 횟수\n";
 
-
-    // -------------------------------------
-    // 문제 3. 게임 이벤트 탐색
-    // -------------------------------------
-
-    cout << "\n===== 문제 3: 게임 이벤트 검색 =====\n";
-
-    vector<GameEvent> events = {
-        {"Attack", 100},
-        {"Heal", 120},
-        {"BossSpawn", 150},
-        {"Reload", 120},
-        {"Shield", 125}
+    vector<string> maze = {
+        "S...",
+        ".##.",
+        "....",
+        ".##G"
     };
 
-    // 이진 탐색을 하기 전에 먼저 정렬
-    // 같은 프레임은 기존 순서 유지
-    stable_sort(
-        events.begin(),
-        events.end(),
-        [](const GameEvent& a, const GameEvent& b)
-        {
-            return a.triggerFrame < b.triggerFrame;
-        }
-    );
+    // BFS를 사용해 최단 이동 횟수 계산
+    int moves = MazeShortestMoves(maze);
 
-    // 120 이상인 첫 번째 이벤트 검색
-    auto first = lower_bound(
-        events.begin(),
-        events.end(),
-        120,
-        [](const GameEvent& e, int frame)
-        {
-            return e.triggerFrame < frame;
-        }
-    );
-
-    // 125 초과인 첫 번째 이벤트 검색
-    auto last = upper_bound(
-        events.begin(),
-        events.end(),
-        125,
-        [](int frame, const GameEvent& e)
-        {
-            return frame < e.triggerFrame;
-        }
-    );
-
-    // 검색된 구간의 이벤트 출력
-    for (auto it = first; it != last; ++it)
-    {
-        cout << it->triggerFrame
-            << " " << it->name
-            << endl;
-    }
+    // 결과 출력
+    cout << "Minimum moves: "
+        << moves << '\n';
 
     return 0;
 }
