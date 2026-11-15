@@ -1,0 +1,12 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# C++ Build
+Debug/
+Release/
+x64/
+*.obj
+*.pdb
+*.ilk
